@@ -17,10 +17,7 @@ public class PortalHandler : MonoBehaviour
         pairPortal.portalObjects.Add(other);
 
         GameObject copy = Instantiate(other.gameObject);
-        copy.transform.parent = pairPortal.transform;
-
-        //copy.GetComponent<Rigidbody>().isKinematic = true;
-        //portalObjects.Add(copy.GetComponent<Collider>());
+        //copy.transform.parent = pairPortal.transform;
 
         other.gameObject.layer = 8;
         copy.layer = 8;
@@ -40,31 +37,43 @@ public class PortalHandler : MonoBehaviour
         Rigidbody rb = original.GetComponent<Rigidbody>();
 
         Vector3 relativePosition = Vector3.zero;
+        float relativeScaleMod = 1f;
         Quaternion relativeRotation = Quaternion.identity;
 
         while(portalObjects.Contains(original))
         {
+            // Match relative position
             relativePosition = transform.InverseTransformPoint(original.transform.position);
             relativePosition = Vector3.Scale(relativePosition, new Vector3(-1, 1, -1));
             copy.transform.position = pairPortal.transform.TransformPoint(relativePosition);
 
+            // Match relative and reverse rotation
             relativeRotation = Quaternion.Inverse(transform.rotation) * original.transform.rotation;
-            copy.transform.localRotation = relativeRotation;
+            copy.transform.rotation = pairPortal.transform.rotation * relativeRotation;
             copy.transform.RotateAround(copy.transform.position, pairPortal.transform.up, 180f);
-            //relativeRotation = Quaternion.Inverse(pairPortal.transform.rotation) * relativeRotation;
-            // relativeRotation = transform.rotation * relativeRotation;
-            // copy.transform.rotation = relativeRotation;
+
+            // Match relative scale
+            relativeScaleMod = pairPortal.transform.localScale.magnitude / transform.localScale.magnitude;
+            copy.transform.localScale = original.transform.localScale * relativeScaleMod;
 
             yield return null;
         }
 
         if(relativePosition.z > 0)
         {
-            //rb.velocity = pairPortal.transform.TransformDirection(transform.TransformDirection(rb.velocity));
-            Vector3 vel = rb.transform.InverseTransformDirection(rb.velocity);
+            // Save the relative velocity
+            Vector3 portalVelocity = rb.transform.InverseTransformDirection(rb.velocity);
+
+            // Move the original object to match the clone
             original.transform.position = copy.transform.position;
             original.transform.rotation = copy.transform.rotation;
-            rb.velocity = rb.transform.TransformDirection(vel);
+            original.transform.localScale = copy.transform.localScale;
+
+            // Appily the relative velocity to original
+            rb.velocity = Vector3.zero;
+            portalVelocity = rb.transform.TransformDirection(portalVelocity);
+            rb.AddForce(portalVelocity, ForceMode.VelocityChange);
+
             yield return new WaitForEndOfFrame();
         }
         

@@ -457,6 +457,7 @@ GameObject:
   - component: {fileID: 4131083785457509419}
   - component: {fileID: 4131083785457509416}
   - component: {fileID: 4131083785457509418}
+  - component: {fileID: 3162899005210108852}
   m_Layer: 0
   m_Name: Portal A
   m_TagString: Untagged
@@ -510,6 +511,22 @@ MonoBehaviour:
   portalCamera: {fileID: 4131083785629312979}
   pairPortal: {fileID: 0}
   portalRenderer: {fileID: 6401104378697349971}
+--- !u!54 &3162899005210108852
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4131083785457509413}
+  serializedVersion: 2
+  m_Mass: 0.0000001
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3
 --- !u!1 &4131083785629312978
 GameObject:
   m_ObjectHideFlags: 0
@@ -745,7 +762,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8803269035325349715}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1.3, y: 1.8, z: 0.05}
@@ -775,7 +792,7 @@ Transform:
   m_GameObject: {fileID: 9047579065014744873}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0.05}
-  m_LocalScale: {x: 0.13, y: 1, z: 0.18}
+  m_LocalScale: {x: 0.14, y: 1, z: 0.19}
   m_Children:
   - {fileID: 2133655008908421663}
   m_Father: {fileID: 4131083785457509419}
