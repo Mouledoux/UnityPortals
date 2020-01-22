@@ -5,19 +5,21 @@ using UnityEngine;
 public class PortalHandler : MonoBehaviour
 {
     public PortalHandler pairPortal;
-    private List<Collider> portalObjects = new List<Collider>();
+    private static Dictionary<Collider, GameObject> portalObjects = new Dictionary<Collider, GameObject>();
 
      private void OnTriggerStay(Collider other)
     {
         if(other.GetComponent<Rigidbody>() == null) return;
-        else if(portalObjects.Contains(other) || pairPortal.portalObjects.Contains(other)) return;
+        else if(portalObjects.ContainsKey(other) || portalObjects.ContainsValue(other.gameObject)) return;
         else if(transform.InverseTransformPoint(other.transform.position).z < 0) return;
 
-        portalObjects.Add(other);
-        pairPortal.portalObjects.Add(other);
 
         GameObject copy = Instantiate(other.gameObject);
-        //copy.transform.parent = pairPortal.transform;
+        portalObjects.Add(other, copy);
+
+        Rigidbody copyRB = copy.GetComponent<Rigidbody>();
+        copyRB.isKinematic = true;
+
 
         other.gameObject.layer = 8;
         copy.layer = 8;
@@ -28,7 +30,7 @@ public class PortalHandler : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if(portalObjects.Contains(other)) portalObjects.Remove(other);
+        if(portalObjects.ContainsKey(other)) portalObjects.Remove(other);
     }
 
 
@@ -40,7 +42,7 @@ public class PortalHandler : MonoBehaviour
         float relativeScaleMod = 1f;
         Quaternion relativeRotation = Quaternion.identity;
 
-        while(portalObjects.Contains(original))
+        while(portalObjects.ContainsKey(original))
         {
             // Match relative position
             relativePosition = transform.InverseTransformPoint(original.transform.position);
@@ -77,10 +79,9 @@ public class PortalHandler : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
         
-        pairPortal.portalObjects.Remove(original);
+        portalObjects.Remove(original);
         original.gameObject.layer = 0;
 
-        portalObjects.Remove(copy.GetComponent<Collider>());
         Destroy(copy);
     }
 
@@ -94,9 +95,9 @@ public class PortalHandler : MonoBehaviour
         foreach(Component c in go.GetComponents(typeof(Component)))
         {
             System.Type type = c.GetType();
-            if(//type != typeof(Collider) &&
+            if(type != typeof(Collider) &&
                 type != typeof(Transform) &&
-                //type != typeof(Rigidbody) &&
+                type != typeof(Rigidbody) &&
                 type != typeof(MeshFilter) &&
                 type != typeof(MeshRenderer))
             Destroy(c);
