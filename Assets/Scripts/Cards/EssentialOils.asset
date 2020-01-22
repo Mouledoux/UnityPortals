@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7978de8e08a6ec34aa2ff26260505eef, type: 3}
+  m_Name: EssentialOils
+  m_EditorClassIdentifier: 
+  cardName: Essential Oils
+  cardCost: 2
+  cardType: 3
+  cardActions:
+  - actionName: Lather
+    actionDescription: Heal for the number of cards in your hand
+    actionCost: 0
+    actionType: 3
