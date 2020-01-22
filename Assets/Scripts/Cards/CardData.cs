@@ -5,16 +5,32 @@ using UnityEngine;
 
 namespace Cards
 {
-    [CreateAssetMenu(fileName = "BaseCardData", menuName = "CardData/BaseCard", order = 1)]
-    public class CardData : ScriptableObject
+    public class CardData : ScriptableObject, ITargetableCard
     {
         public CardData() {}
 
-        public string          cardName;
-        public int             cardCost;
-        public CardType        cardType;
-        public CardAction[]    cardActions;
+        public string       cardName;
+        public CardType     cardType;
+        public CardAction[] cardActions;
+
+
+        private int originalCardCost;  
+        private int originalCardResources;
+        public int  currentCardCost;
+        public int  currentCardResources;
+
+
+        public CardType GetCardType()
+        {
+            return cardType;
+        }
+
+        public void AdjustStatBy(ref int stat, int deltaStat)
+        {
+            stat += deltaStat;
+        }
     }
+
 
 
     [CreateAssetMenu(fileName = "MonsterCardData", menuName = "CardData/MonsterCard")]
@@ -25,14 +41,18 @@ namespace Cards
         private int originalMonsterHealth;
         private int originalMonsterAttack;
 
+        public int currentMonsterHealth;
+        public int currentMonsterDamage;
+
     }
 
-    [System.Serializable]
-    public class CardAction
+
+
+    public abstract class CardAction : ScriptableObject
     {
         public string actionName;
         public string actionDescription;
-        public string actionCost;
+        public int actionCost;
 
         [Space]
 
@@ -40,9 +60,45 @@ namespace Cards
         public int actionValue;
 
         protected ITargetableCard[] targetCards;
-        public virtual void ProcessActionOnTargets() {}
+
+
+        public virtual bool CanAffordAction(int resources) { return resources >= actionCost; }
+        public virtual void ProcessActionCost(ref int resources) { resources -= actionCost; }
+        
+
+        public abstract void ProcessActionOnTargets(ref int resources);
     }
 
+
+
+    public class AttackCardAction : CardAction
+    {
+        public override void ProcessActionOnTargets(ref int resources)
+        {
+            foreach(ITargetableCard tc in targetCards)
+            {
+                switch(tc.GetCardType())
+                {
+                    case CardType.MONSTER:
+                        tc.AdjustStatBy(ref (tc as MonsterCardData).currentMonsterHealth, -actionValue);
+                        break;
+
+                    default:
+                        return;
+                };
+            }
+        }
+    }
+
+
+
+
+
+    public interface ITargetableCard
+    {
+        CardType GetCardType();
+        void AdjustStatBy(ref int stat, int deltaStat);
+    }
 
 
     public enum CardType
@@ -53,18 +109,14 @@ namespace Cards
         SPELL,
     }
 
+
     public enum ActionType
     {
         VOID,
         MOVE,
         ATTACK,
+        DEFEND,
         HEAL,
         BUFF,
-    }
-
-
-    public interface ITargetableCard
-    {
-        CardType GetCardType();
     }
 }
