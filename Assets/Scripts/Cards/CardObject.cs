@@ -1,27 +1,81 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Cards
 {
-    public class CardObject : MonoBehaviour
+    public class CardObject : MonoBehaviour, ITargetableCard
     {
-        public readonly CardData cardData;
+        public CardData cardData;
 
-        private CardZoneType _currentZone;
-        public CardZoneType currentZone
+
+        [Space]
+        private string cardName;
+        private CardType cardType;
+
+
+        public Dictionary<StatType, CardStat> cardStats;
+        public Dictionary<ActionPriority, CardAction> cardActions;
+
+
+        [SerializeField]
+        private SpriteRenderer cardArtwork;
+        [SerializeField]
+        private TMPro.TextMeshPro cardDescription;
+
+
+        public CardObject(){}
+
+        public CardObject(CardData cardData) =>
+            new CardObject(cardData.cardName, cardData.GetCardType(), cardData.cardStats, cardData.cardActions);
+                    
+        public CardObject(string name, CardType type, CardStat[] stats, CardAction[] actions)
         {
-            get { return _currentZone; }
+            cardName = name;
+            cardType = type;
 
-            private set
-            {
-                if(_currentZone == value) return;
+            cardStats = new Dictionary<StatType, CardStat>();
+            foreach(CardStat cs in stats)
+                cardStats.Add(cs.statType, cs);
 
-                this.onCardMove?.Invoke(value);
-                _currentZone = value;
-            }
+            cardActions = new Dictionary<ActionPriority, CardAction>();
+            foreach(CardAction ca in actions)
+                cardActions.Add(ca.actionPriority, ca);
         }
 
-        public System.Action<CardZoneType> onCardMove;
+        public void Initialize(CardData cardData)
+        {
+            cardName = cardData.cardName;
+            cardType = cardData.GetCardType();
+            
+            cardStats = new Dictionary<StatType, CardStat>();
+            foreach(CardStat cs in cardData.cardStats)
+                cardStats.Add(cs.statType, cs);
+
+            cardActions = new Dictionary<ActionPriority, CardAction>();
+            foreach(CardAction ca in cardData.cardActions)
+                cardActions.Add(ca.actionPriority, ca);
+
+            cardArtwork.sprite = cardData.cardArtwork;
+            cardDescription.text = cardData.cardDescription;
+        }
+
+
+        private void Awake()
+        {
+            Initialize(cardData);
+        }
+
+
+        CardType ITargetableCard.GetCardType() => cardType;
+        CardStat ITargetableCard.GetCardStat(StatType type) => cardStats[type];
+        int ITargetableCard.AdjustStatBy(StatType type, int deltaStat)
+        {
+            cardStats[type].statValue += deltaStat;
+            cardStats[type].OnStatChange?.Invoke();
+            return cardStats[type].statValue;
+        }
+
     }
 }

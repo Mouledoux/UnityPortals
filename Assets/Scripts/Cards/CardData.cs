@@ -5,91 +5,85 @@ using UnityEngine;
 
 namespace Cards
 {
-    public class CardData : ScriptableObject, ITargetableCard
+    public abstract class CardData : ScriptableObject
     {
         public CardData() {}
-
-        public string       cardName;
-        public CardType     cardType;
-        public CardAction[] cardActions;
+        public abstract CardType GetCardType();
+        private CardType         cardType;
 
 
-        private int originalCardCost;  
-        private int originalCardResources;
-        public int  currentCardCost;
-        public int  currentCardResources;
+        public string           cardName => name;
+        public string           cardDescription;
+        public Sprite           cardArtwork;
 
 
-        public CardType GetCardType()
-        {
-            return cardType;
-        }
-
-        public void AdjustStatBy(ref int stat, int deltaStat)
-        {
-            stat += deltaStat;
-        }
+        [Space]
+        public CardStat[]       cardStats;
+        [Space]
+        public CardAction[]     cardActions;
     }
 
 
-
-    [CreateAssetMenu(fileName = "MonsterCardData", menuName = "CardData/MonsterCard")]
-    public class MonsterCardData : CardData
+    [System.Serializable]
+    public class CardStat
     {
-        public MonsterCardData() { cardType = CardType.MONSTER; }
+        public StatType statType;
+        public int statValue;
 
-        private int originalMonsterHealth;
-        private int originalMonsterAttack;
-
-        public int currentMonsterHealth;
-        public int currentMonsterDamage;
-
+        public System.Action OnStatChange;
     }
 
 
-
+    [System.Serializable]
     public abstract class CardAction : ScriptableObject
     {
         public string actionName;
         public string actionDescription;
         public int actionCost;
 
+
         [Space]
-
         public ActionType actionType;
+        public ActionPriority actionPriority;
         public int actionValue;
-
-        protected ITargetableCard[] targetCards;
+        public ITargetableCard targetCard;
 
 
         public virtual bool CanAffordAction(int resources) { return resources >= actionCost; }
         public virtual void ProcessActionCost(ref int resources) { resources -= actionCost; }
-        
+        public abstract void ProcessActionOnTargets();
+    }
 
-        public abstract void ProcessActionOnTargets(ref int resources);
+
+    [CreateAssetMenu(fileName = "MonsterCardData", menuName = "Cards/CardDatas/MonsterCardData")]
+    public class MonsterCardData : CardData
+    {
+        public override CardType GetCardType () => CardType.MONSTER;
     }
 
 
 
+
+    [CreateAssetMenu(fileName = "AttackCardAction", menuName = "Cards/CardActions/AttackAction")]
     public class AttackCardAction : CardAction
     {
-        public override void ProcessActionOnTargets(ref int resources)
+        public override void ProcessActionOnTargets()
         {
-            foreach(ITargetableCard tc in targetCards)
-            {
-                switch(tc.GetCardType())
-                {
-                    case CardType.MONSTER:
-                        tc.AdjustStatBy(ref (tc as MonsterCardData).currentMonsterHealth, -actionValue);
-                        break;
-
-                    default:
-                        return;
-                };
-            }
+            targetCard.AdjustStatBy(StatType.HEALTH, -actionValue);
+            Debug.Log(string.Format("{0}: {1}", targetCard, targetCard.GetCardStat(StatType.HEALTH)));
         }
     }
 
+
+    [CreateAssetMenu(fileName = "HealCardAction", menuName = "Cards/CardActions/HealAction")]
+    public class HealCardAction : CardAction
+    {
+        public override void ProcessActionOnTargets()
+        {
+            targetCard.AdjustStatBy(StatType.HEALTH, actionValue);
+            Debug.Log(string.Format("{0}: {1}", targetCard, targetCard.GetCardStat(StatType.HEALTH).statValue));
+        }
+    }
 
 
 
@@ -97,7 +91,8 @@ namespace Cards
     public interface ITargetableCard
     {
         CardType GetCardType();
-        void AdjustStatBy(ref int stat, int deltaStat);
+        CardStat GetCardStat(StatType type);
+        int AdjustStatBy(StatType stat, int deltaStat);
     }
 
 
@@ -109,6 +104,13 @@ namespace Cards
         SPELL,
     }
 
+    public enum StatType
+    {
+        VOID,
+        COST,
+        HEALTH,
+        RESOURCE,
+    }
 
     public enum ActionType
     {
@@ -118,5 +120,15 @@ namespace Cards
         DEFEND,
         HEAL,
         BUFF,
+    }
+
+    public enum ActionPriority
+    {
+        VOID,
+        PRIMARY,
+        SECONDARY,
+        ACTIVE,
+        PASSIVE,
+        SPECIAL,
     }
 }
