@@ -76,6 +76,7 @@ namespace Cards
             cardStats[type].OnStatChange?.Invoke();
             return cardStats[type].statValue;
         }
-
     }
+
 }
+
