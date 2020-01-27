@@ -5,7 +5,7 @@ using UnityEngine;
 public class SuperiorCube : MonoBehaviour
 {
     public bool isOnGround;
-    SuperiorStateMachine<PlayerStates> ssm = new SuperiorStateMachine<PlayerStates>(PlayerStates.INIT);
+    SuperiorStateMachine<PlayerStates> ssm = new SuperiorStateMachine<PlayerStates>(PlayerStates.INIT, PlayerStates.ANY);
 
     void Start()
     {
@@ -38,13 +38,12 @@ public class SuperiorCube : MonoBehaviour
 
 
         System.Func<bool>[] deadPre = {NearCamera};
-        System.Action die = ResetPosition;
-        ssm.AddTransition(PlayerStates.IDLE, PlayerStates.DEAD, deadPre, die);
+        System.Action die = () => { gameObject.SetActive(false); };
+        ssm.AddTransition(PlayerStates.ANY, PlayerStates.DEAD, deadPre, die);
     }
 
     void Update()
     {
-        print(1/Time.deltaTime);
         ssm.ProcessTransitions();
     }
 
@@ -67,5 +66,6 @@ public class SuperiorCube : MonoBehaviour
         JUMPING,
         FALLING,
         DEAD,
+        ANY,
     }
 }

@@ -7,6 +7,7 @@ public sealed class SuperiorStateMachine<T>
 {
     private bool initialized = false;
 
+    private T _anyState;
     private T _currentState;
     public T currentState
     {
@@ -19,7 +20,7 @@ public sealed class SuperiorStateMachine<T>
 
             foreach (Transition t in allTransitions.Keys)
             {
-                if (value.Equals(t.GetAState()))
+                if (value.Equals(t.GetAState()) || t.GetAState().Equals(_anyState))
                     availableTransitions.Add(t);
             }
         }
@@ -32,9 +33,10 @@ public sealed class SuperiorStateMachine<T>
         new System.Collections.Generic.List<Transition>();
 
 
-    public SuperiorStateMachine(T initState)
+    public SuperiorStateMachine(T initState, T anyState)
     {
-        currentState = initState;
+        _currentState = initState;
+        _anyState = anyState;
     }
 
 
@@ -51,7 +53,7 @@ public sealed class SuperiorStateMachine<T>
             if (t.CheckPreRequisits())
             {
                 currentState = t.GetBState();
-                allTransitions[t].Invoke();
+                allTransitions[t]?.Invoke();
                 return;
             }
         }
@@ -117,7 +119,7 @@ public sealed class SuperiorStateMachine<T>
         public int experience;
         public int experienceToNextLevel;
 
-        SuperiorStateMachine<string> playerFSM = new SuperiorStateMachine<string>("idle");
+        SuperiorStateMachine<string> playerFSM = new SuperiorStateMachine<string>("idle", "any");
 
 
 
