@@ -30,5 +30,18 @@ namespace Cards
             }
             else throw new System.ArgumentException();
         }
+
+        public void MoveCardToNewZone(CardObject cardObject, CardZone newZone)
+        {
+            if(!cards.Contains(cardObject))
+            {
+                throw new System.ArgumentException();
+            }
+            
+            else
+            {
+                newZone.AddCard(RemoveCard(cardObject));
+            }
+        }
     }
 }
